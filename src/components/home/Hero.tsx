@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
 const locations = [
   "All Sierra Leone",
@@ -12,10 +14,28 @@ const locations = [
   "Port Loko",
 ];
 
-const popularSearches = ["Phones", "Cars", "Apartments", "Laptops", "Furniture"];
+const popularSearches = [
+  { label: "Phones", href: "/products?q=phone" },
+  { label: "Cars", href: "/products?q=car" },
+  { label: "Apartments", href: "/products?q=apartment" },
+  { label: "Laptops", href: "/products?q=laptop" },
+  { label: "Furniture", href: "/products?q=furniture" },
+];
 
 export default function Hero() {
   const [location, setLocation] = useState("All Sierra Leone");
+  const router = useRouter();
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get("q") ?? "").trim();
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (location !== "All Sierra Leone") params.set("city", location);
+    const queryString = params.toString();
+    router.push(queryString ? `/products?${queryString}` : "/products");
+  }
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-dark">
@@ -34,7 +54,11 @@ export default function Hero() {
             and more. Connect with buyers and sellers near you.
           </p>
 
-          <div className="mt-8 rounded-xl bg-white p-3 shadow-lg sm:p-4">
+          <form
+            onSubmit={handleSearch}
+            role="search"
+            className="mt-8 rounded-xl bg-white p-3 shadow-lg sm:p-4"
+          >
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1">
                 <svg
@@ -52,13 +76,16 @@ export default function Hero() {
                 </svg>
                 <input
                   type="search"
+                  name="q"
                   placeholder="What are you looking for?"
+                  aria-label="Search listings"
                   className="w-full rounded-lg border border-border py-3 pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                aria-label="Filter by location"
                 className="rounded-lg border border-border px-4 py-3 text-sm outline-none focus:border-primary sm:w-44"
               >
                 {locations.map((loc) => (
@@ -67,21 +94,25 @@ export default function Hero() {
                   </option>
                 ))}
               </select>
-              <button className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary-dark transition-colors">
+              <button
+                type="submit"
+                className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+              >
                 Search
               </button>
             </div>
-          </div>
+          </form>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             <span className="text-sm text-green-50">Popular:</span>
             {popularSearches.map((term) => (
-              <button
-                key={term}
+              <Link
+                key={term.label}
+                href={term.href}
                 className="rounded-full bg-white/15 px-3 py-1 text-sm text-white backdrop-blur transition-colors hover:bg-white/25"
               >
-                {term}
-              </button>
+                {term.label}
+              </Link>
             ))}
           </div>
         </div>

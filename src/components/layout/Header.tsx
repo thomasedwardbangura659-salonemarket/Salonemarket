@@ -1,10 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const query = String(formData.get("q") ?? "").trim();
+    setMenuOpen(false);
+    router.push(
+      query ? `/products?q=${encodeURIComponent(query)}` : "/products"
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -14,11 +26,17 @@ export default function Header() {
           <span className="text-xl font-bold text-foreground">Market</span>
         </Link>
 
-        <div className="hidden flex-1 max-w-md md:block">
+        <form
+          onSubmit={handleSearch}
+          role="search"
+          className="hidden flex-1 max-w-md md:block"
+        >
           <div className="relative">
             <input
               type="search"
+              name="q"
               placeholder="Search products, services..."
+              aria-label="Search products and services"
               className="w-full rounded-lg border border-border bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
             <svg
@@ -35,7 +53,7 @@ export default function Header() {
               />
             </svg>
           </div>
-        </div>
+        </form>
 
         <nav className="hidden items-center gap-6 md:flex">
           <Link
@@ -82,10 +100,12 @@ export default function Header() {
       {menuOpen && (
         <div className="border-t border-border bg-white md:hidden">
           <div className="space-y-1 px-4 py-3">
-            <div className="relative mb-3">
+            <form onSubmit={handleSearch} role="search" className="relative mb-3">
               <input
                 type="search"
+                name="q"
                 placeholder="Search products..."
+                aria-label="Search products"
                 className="w-full rounded-lg border border-border bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none focus:border-primary"
               />
               <svg
@@ -96,7 +116,7 @@ export default function Header() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-            </div>
+            </form>
             <Link href="/products" className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-50" onClick={() => setMenuOpen(false)}>
               Browse
             </Link>
